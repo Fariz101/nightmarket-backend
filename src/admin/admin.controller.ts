@@ -12,8 +12,6 @@ export class AdminController {
 
   @Post()
   @UsePipes(new ValidationPipe)
-  @UseGuards(AuthGuard('jwt'), RoleGuard)
-  @Roles('ADMIN')
   create(@Body() createAdminDto: CreateAdminDto) {
     return this.adminService.create(createAdminDto);
   }
