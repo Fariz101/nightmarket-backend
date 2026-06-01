@@ -1,20 +1,19 @@
-// src/main.ts
+// backend: src/main.ts
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   
-  // Mengaktifkan CORS agar Next.js Anda bisa menembak API ini
+  // ✅ PENTING: Aktifkan ini dengan benar agar port 3000 diizinkan masuk
   app.enableCors({
-    origin: '*', // Bisa diperketat menggunakan URL Next.js production Anda nanti
+    origin: ['http://localhost:3000', 'https://nightmarket-backend-production.up.railway.app'],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
 
-  // 🔴 UBAH BAGIAN INI: Wajib dengerin process.env.PORT dari Railway
   const port = process.env.PORT || 5001; 
-  await app.listen(port, '0.0.0.0'); // Tambahkan '0.0.0.0' agar bisa diikat oleh router internal Railway
-  
-  console.log(`Application is running on: http://localhost:${port}`);
+  await app.listen(port, '0.0.0.0'); 
+  console.log(`Application is running on port: ${port}`);
 }
 bootstrap();
