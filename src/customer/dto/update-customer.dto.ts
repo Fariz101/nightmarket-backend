@@ -3,19 +3,30 @@ import { CreateCustomerDto } from './create-customer.dto';
 import { IsEmail, IsOptional, IsString } from 'class-validator';
 
 export class UpdateCustomerDto extends PartialType(CreateCustomerDto) {
-    @IsOptional()
-    @IsString()
-    username?: string;
+  @IsOptional()
+  @IsString()
+  username?: string;
 
-    @IsOptional()
-    @IsString()
-    about?: string;
-
-    @IsOptional()
+  @IsOptional()
   @IsEmail()
   email?: string;
 
   @IsOptional()
   @IsString()
   password?: string;
+
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @IsOptional()
+  @IsString()
+  phone?: string;
+  
+  @IsOptional()
+  @IsString()
+  address?: string;
+
+  @IsOptional()
+  photo?: any;
 }

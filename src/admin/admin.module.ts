@@ -3,10 +3,11 @@ import { AdminService } from './admin.service';
 import { AdminController } from './admin.controller';
 
 import { BcryptModule } from '../bcrypt/bcrypt.module'; 
+import { CloudinaryModule } from '../cloudinary/cloudinary.module';
+import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
-  imports: [BcryptModule], 
-  
+  imports: [CloudinaryModule,BcryptModule],   
   controllers: [AdminController],
   providers: [AdminService], 
 })

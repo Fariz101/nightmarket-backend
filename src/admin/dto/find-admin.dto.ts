@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsIn, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class FindAdminDto {
   @IsOptional()
@@ -15,4 +15,12 @@ export class FindAdminDto {
   @Type(() => Number)
   @IsNumber()
   limit?: number;
+
+  @IsOptional()
+  @IsIn(['id', 'name'])
+  sortBy?: 'id' | 'name';
+
+  @IsOptional()
+  @IsIn(['asc', 'desc'])
+  sortOrder?: 'asc' | 'desc' = 'asc';
 }

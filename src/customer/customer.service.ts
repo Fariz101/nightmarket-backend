@@ -4,42 +4,55 @@ import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { BcryptService } from '../bcrypt/bcrypt.service';
 import { FindCustomerDto } from './dto/find-customer.dto';
+import { CloudinaryService } from '../cloudinary/cloudinary.service'; // Injeksi Cloudinary
 
 @Injectable()
 export class CustomerService {
   constructor(
     private prisma: PrismaService,
     private readonly bcrypt: BcryptService,
+    private readonly cloudinary: CloudinaryService, 
   ) {}
 
-  async create(createCustomerDto: CreateCustomerDto) {
+  async create(createCustomerDto: CreateCustomerDto, file?: Express.Multer.File) {
     try {
-      const { username, about, email, password } = createCustomerDto;
-      const createCustomer = await this.prisma.customers.create({
+      const { name, phone, address, username, email, password } = createCustomerDto;
+
+      let photoUrl = null;
+      if (file) {
+        const uploadResult = await this.cloudinary.uploadFile(file, 'customer_photos');
+        photoUrl = uploadResult.secure_url;
+      }
+
+      const createCustomer = await this.prisma.customer.create({
         data: {
-          username: username,
-          about: about,
+          name: name,
+          phone: phone,
+          address: address,
+          photo: photoUrl,
           user: {
             create: {
+              username: username,
               email: email,
-              password: await this.bcrypt.hashPassword(password),
-              role: 'CUSTOMER',
+              password: await this.bcrypt.hashPassword(password), 
+              role: 'CUSTOMER',     
             },
           },
         },
-      include: {
-        user: true, 
-      },
+        include: {
+          user: true, 
+        },
       });
+
       return {
         success: true,
         message: 'customer created successfully',
-        data: createCustomer ,
+        data: createCustomer,
       };
     } catch (error: any) {
       return {
         success: false,
-        message: `error when get customer: ${error.message}`,
+        message: `error when create customer: ${error.message}`,
         data: null,
       };
     }
@@ -47,29 +60,35 @@ export class CustomerService {
 
   async findAll(findCustomerDto: FindCustomerDto) {
     try {
-      const { search = '', page = 1, limit = 10 } = findCustomerDto;
+      const { search = '', page = 1, limit = 10, sortBy, sortOrder = 'asc' } = findCustomerDto;
       const skip = (page - 1) * limit;
 
       const where: any = {};
       if (search) {
-        where.username = {
-          contains: search,
-        };
+        where.OR = [
+          { name: { contains: search } },
+          { user: { email: { contains: search } } },
+          { user: { username: { contains: search } } }
+        ];
       }
-      const customers = await this.prisma.customers.findMany({
+
+      const orderBy: any = sortBy ? { [sortBy]: sortOrder } : { id: 'asc' };
+
+      const customer = await this.prisma.customer.findMany({
         where,
+        orderBy,
         skip: skip,
         take: Number(limit),
         include: {
           user: true, 
         },
       });
-      const total = await this.prisma.customers.count({ where });
+      const total = await this.prisma.customer.count({ where });
 
       return {
         success: true,
-        message: 'customer data founded succesfully',
-        data: customers,
+        message: 'customer data founded successfully',
+        data: customer,
         meta: {
           total,
           page: Number(page),
@@ -88,13 +107,13 @@ export class CustomerService {
 
   async findOne(id: number) {
     try {
-      const customers = await this.prisma.customers.findFirst({
+      const customer = await this.prisma.customer.findFirst({
         where: { id: id },
         include: {
           user: true, 
         },
       });
-      if (!customers) {
+      if (!customer) {
         return {
           success: false,
           message: 'Customer does not exists',
@@ -103,8 +122,8 @@ export class CustomerService {
       }
       return {
         success: true,
-        message: 'customer data founded succesfully',
-        data: customers ,
+        message: 'customer data founded successfully',
+        data: customer,
       };
     } catch (error: any) {
       return {
@@ -115,10 +134,41 @@ export class CustomerService {
     }
   }
 
-  async update(id: number, updateCustomerDto: UpdateCustomerDto) {
+  async getMe(userId: number) {
+  try {
+    const customerProfile = await this.prisma.customer.findFirst({
+      where: { userId: userId },
+      include: { user: true },  
+    });
+
+    if (!customerProfile) {
+      return { 
+        success: false, 
+        message: 'Customer profile not found', 
+        data: null };
+    }
+
+    if (customerProfile.user) {
+      delete (customerProfile.user as any).password;
+    }
+
+    return { 
+      success: true, 
+      message: 'your customer profile founded successfully', 
+      data: customerProfile };
+  } catch (error: any) {
+    return { 
+      success: false, 
+      message: `error when get your customer profile: ${error.message}`, 
+      data: null };
+  }
+}
+
+  async update(id: number, updateCustomerDto: UpdateCustomerDto, file?: Express.Multer.File) {
     try {
-      const { username, about } = updateCustomerDto;
-      const findCustomer = await this.prisma.customers.findFirst({
+      const { name, phone, address, username, email, password } = updateCustomerDto;
+      
+      const findCustomer = await this.prisma.customer.findFirst({
         where: { id: id },
       });
       if (!findCustomer) {
@@ -128,19 +178,43 @@ export class CustomerService {
           data: null,
         };
       }
-      const updateCustomer = await this.prisma.customers.update({
+
+      let photoUrl = findCustomer.photo;
+
+      if (file) {
+        if (findCustomer.photo) {
+          try {
+            await this.cloudinary.deleteFile(findCustomer.photo);
+          } catch (deleteError) {
+            console.log('Gagal menghapus foto lama di Cloudinary', deleteError);
+          }
+        }
+        const uploadResult = await this.cloudinary.uploadFile(file, 'customer_photos');
+        photoUrl = uploadResult.secure_url;
+      }
+
+      const userUpdateData: any = {};
+      if (username) userUpdateData.username = username;
+      if (email) userUpdateData.email = email;
+      if (password) userUpdateData.password = await this.bcrypt.hashPassword(password);
+
+      const updateCustomer = await this.prisma.customer.update({
         where: { id: id },
         data: {
-          username: username ?? findCustomer.username,
-          about: about ?? findCustomer.about,
+          name: name ?? findCustomer.name,
+          phone: phone ?? findCustomer.phone,
+          address: address ?? findCustomer.address,
+          photo: photoUrl,
+          user: Object.keys(userUpdateData).length > 0 ? { update: userUpdateData } : undefined,
         },
         include: {
           user: true, 
         },
       });
+
       return {
         success: true,
-        message: 'Customer has updated',
+        message: 'New Customer has updated',
         data: updateCustomer,
       };
     } catch (error: any) {
@@ -154,7 +228,7 @@ export class CustomerService {
 
   async remove(id: number) {
     try {
-      const findCustomer = await this.prisma.customers.findFirst({
+      const findCustomer = await this.prisma.customer.findFirst({
         where: { id: id },
       });
       if (!findCustomer) {
@@ -164,7 +238,16 @@ export class CustomerService {
           data: null,
         };
       }
-      const deletedCustomer = await this.prisma.customers.delete({
+
+      if (findCustomer.photo) {
+        try {
+          await this.cloudinary.deleteFile(findCustomer.photo);
+        } catch (deleteError) {
+          console.log('Gagal menghapus foto customer di Cloudinary', deleteError);
+        }
+      }
+
+      const deletedCustomer = await this.prisma.customer.delete({
         where: { id: id },
         include: {
           user: true, 

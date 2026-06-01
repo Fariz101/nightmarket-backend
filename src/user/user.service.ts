@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { FindUserDto } from './dto/find-user.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { BcryptService } from '../bcrypt/bcrypt.service';
-import { FindUserDto } from './dto/find-user.dto';
 
 @Injectable()
 export class UserService {
@@ -14,23 +14,26 @@ export class UserService {
 
   async create(createUserDto: CreateUserDto) {
     try {
-      const { email, password, role } = createUserDto;
+      const { username, email, password, role } = createUserDto;
+
       const createUser = await this.prisma.user.create({
         data: {
+          username,
           email,
           password: await this.bcrypt.hashPassword(password),
           role,
         },
       });
+
       return {
         success: true,
-        message: 'user created successfully',
+        message: 'User created successfully',
         data: createUser,
       };
     } catch (error: any) {
       return {
         success: false,
-        message: `error when get user: ${error.message}`,
+        message: `Error when creating user: ${error.message}`,
         data: null,
       };
     }
@@ -38,31 +41,32 @@ export class UserService {
 
   async findAll(findUserDto: FindUserDto) {
     try {
-      const { search = '', role, page = 1, limit = 10 } = findUserDto;
+      const { search = '', page = 1, limit = 10, sortBy, sortOrder = 'asc' } = findUserDto;
       const skip = (page - 1) * limit;
 
       const where: any = {};
       if (search) {
-        where.email = {
-          contains: search,
-        };
+        where.OR = [
+          { username: { contains: search } },
+          { email: { contains: search } },
+        ];
       }
 
-      if (role) {
-        where.role = role;
-      }
+      const orderBy: any = sortBy ? { [sortBy]: sortOrder } : { id: 'asc' };
 
-      const user = await this.prisma.user.findMany({
+      const users = await this.prisma.user.findMany({
         where,
-        skip: skip,
+        orderBy,
+        skip,
         take: Number(limit),
       });
+
       const total = await this.prisma.user.count({ where });
 
       return {
         success: true,
-        message: 'user data founded succesfully',
-        data: user,
+        message: 'User data found successfully',
+        data: users,
         meta: {
           total,
           page: Number(page),
@@ -73,7 +77,7 @@ export class UserService {
     } catch (error: any) {
       return {
         success: false,
-        message: `error when get user: ${error.message}`,
+        message: `Error when getting users: ${error.message}`,
         data: null,
       };
     }
@@ -84,22 +88,24 @@ export class UserService {
       const user = await this.prisma.user.findFirst({
         where: { id: id },
       });
+
       if (!user) {
         return {
           success: false,
-          message: 'User does not exists',
+          message: 'User does not exist',
           data: null,
         };
       }
+
       return {
         success: true,
-        message: 'user data founded succesfully',
+        message: 'User data found successfully',
         data: user,
       };
     } catch (error: any) {
       return {
         success: false,
-        message: `error when get user: ${error.message}`,
+        message: `Error when getting user: ${error.message}`,
         data: null,
       };
     }
@@ -107,36 +113,44 @@ export class UserService {
 
   async update(id: number, updateUserDto: UpdateUserDto) {
     try {
-      const { email, password, role } = updateUserDto;
+      const { username, email, password, role } = updateUserDto;
+
       const findUser = await this.prisma.user.findFirst({
         where: { id: id },
       });
+
       if (!findUser) {
         return {
           success: false,
-          message: 'User does not exists',
+          message: 'User does not exist',
           data: null,
         };
       }
+
+      let hashedPassword = findUser.password;
+      if (password) {
+        hashedPassword = await this.bcrypt.hashPassword(password);
+      }
+
       const updateUser = await this.prisma.user.update({
         where: { id: id },
         data: {
+          username: username ?? findUser.username,
           email: email ?? findUser.email,
-          password: password
-            ? await this.bcrypt.hashPassword(password)
-            : findUser.password,
+          password: hashedPassword,
           role: role ?? findUser.role,
         },
       });
+
       return {
         success: true,
-        message: 'New User has updated',
+        message: 'User has been updated',
         data: updateUser,
       };
     } catch (error: any) {
       return {
         success: false,
-        message: `error when update user: ${error.message}`,
+        message: `Error when updating user: ${error.message}`,
         data: null,
       };
     }
@@ -147,25 +161,28 @@ export class UserService {
       const findUser = await this.prisma.user.findFirst({
         where: { id: id },
       });
+
       if (!findUser) {
         return {
           success: false,
-          message: 'User does not exists',
+          message: 'User does not exist',
           data: null,
         };
       }
+
       const deletedUser = await this.prisma.user.delete({
         where: { id: id },
       });
+
       return {
         success: true,
-        message: 'user has deleted',
+        message: 'User has been deleted',
         data: deletedUser,
       };
     } catch (error: any) {
       return {
         success: false,
-        message: `error when delete user: ${error.message}`,
+        message: `Error when deleting user: ${error.message}`,
         data: null,
       };
     }

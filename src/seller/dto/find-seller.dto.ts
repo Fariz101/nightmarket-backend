@@ -1,8 +1,7 @@
-import { Genre } from '@prisma/client';
 import { Type } from 'class-transformer';
-import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsIn, IsNumber, IsOptional, IsString } from 'class-validator';
 
-export class FindGameDto {
+export class FindSellerDto {
   @IsOptional()
   @IsString()
   search?: string;
@@ -18,6 +17,10 @@ export class FindGameDto {
   limit?: number;
 
   @IsOptional()
-  @IsEnum(Genre)
-  genre?: Genre;
+  @IsIn(['id', 'name'])
+  sortBy?: 'id' | 'name';
+
+  @IsOptional()
+  @IsIn(['asc', 'desc'])
+  sortOrder?: 'asc' | 'desc' = 'asc';
 }

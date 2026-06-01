@@ -1,6 +1,5 @@
-import { UserRole } from '@prisma/client';
 import { Type } from 'class-transformer';
-import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsIn, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class FindUserDto {
   @IsOptional()
@@ -10,14 +9,18 @@ export class FindUserDto {
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
-  page?: number;
+  page?: number = 1;
 
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
-  limit?: number;
+  limit?: number = 10;
 
   @IsOptional()
-  @IsEnum(UserRole)
-  role?: UserRole;
+  @IsIn(['id', 'username', 'email'])
+  sortBy?: 'id' | 'username' | 'email';
+
+  @IsOptional()
+  @IsIn(['asc', 'desc'])
+  sortOrder?: 'asc' | 'desc' = 'asc';
 }

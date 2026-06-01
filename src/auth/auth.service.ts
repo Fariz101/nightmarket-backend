@@ -40,14 +40,14 @@ export class AuthService {
 
       const token = this.jwt.sign({
         id: findUser.id,
-        name: findUser.customer[0]?.username || findUser.admin[0]?.name,
+        name: findUser.admin?.name || findUser.customer?.name,
         role: findUser.role,
       });
 
       return {
         success: true,
         message: 'Login successful',
-        data: { token, name: findUser.customer[0]?.username || findUser.admin[0]?.name, role: findUser.role },
+        data: { token, name: findUser.customer?.name || findUser.admin?.name, role: findUser.role },
       };
 
     } catch (error: any) {

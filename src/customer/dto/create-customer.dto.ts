@@ -12,10 +12,6 @@ export class CreateCustomerDto {
   @IsString()
   username!: string;
 
-  @IsOptional()
-  @IsString()
-  about?: string;
-
   @IsNotEmpty()
   @IsEmail()
   email!: string;
@@ -23,4 +19,19 @@ export class CreateCustomerDto {
   @IsNotEmpty()
   @IsString()
   password!: string;
+
+  @IsNotEmpty()
+  @IsString()
+  name!: string;
+
+  @IsNotEmpty()
+  @IsString()
+  phone!: string;
+
+  @IsNotEmpty()
+  @IsString()
+  address!: string;
+
+  @IsOptional()
+  photo?: any;
 }

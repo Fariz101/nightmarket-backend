@@ -12,10 +12,13 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { UserModule } from './user/user.module';
 import { CustomerModule } from './customer/customer.module';
 import { AdminModule } from './admin/admin.module';
-import { GameModule } from './game/game.module';
+import { SellerModule } from './seller/seller.module';
+import { ProductModule } from './product/product.module';
+import { CartModule } from './cart/cart.module';
+import { TransactionModule } from './transaction/transaction.module';
 
 @Module({
-  imports: [PrismaModule, BcryptModule, AuthModule, CloudinaryModule, UserModule, CustomerModule, AdminModule, GameModule],
+  imports: [PrismaModule, BcryptModule, AuthModule, CloudinaryModule, UserModule, CustomerModule, AdminModule, SellerModule, ProductModule, CartModule, TransactionModule],
   controllers: [AppController, UserController],
   providers: [AppService, UserService, BcryptService, CloudinaryService],
 })

@@ -2,6 +2,7 @@ import {
   IsEmail,
   IsEnum,
   IsNotEmpty,
+  IsOptional,
   IsString,
   IsStrongPassword,
 } from 'class-validator';
@@ -9,7 +10,7 @@ import {
 export class CreateAdminDto {
   @IsNotEmpty()
   @IsString()
-  name!: string;
+  username!: string;
 
   @IsNotEmpty()
   @IsEmail()
@@ -18,4 +19,11 @@ export class CreateAdminDto {
   @IsNotEmpty()
   @IsString()
   password!: string;
+
+  @IsNotEmpty()
+  @IsString()
+  name!: string;
+
+  @IsOptional()
+  photo?: any;
 }
