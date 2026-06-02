@@ -102,7 +102,7 @@ export class TransactionService {
       const customerId = await this.getCustomerId(userId);
       const transactions = await this.prisma.transaction.findMany({
         where: { customerId },
-        include: { transactionItems: { include: { product: true } } },
+        include: {customer: true, transactionItems: { include: { product: true } } },
         orderBy: { createdAt: 'desc' }
       });
       return { success: true, message: 'Riwayat transaksi Anda', data: transactions };
