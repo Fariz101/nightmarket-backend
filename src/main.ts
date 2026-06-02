@@ -11,9 +11,6 @@ async function bootstrap() {
     'http://localhost:3000',
     'https://night-market-aa3e26ngc-farizs-projects-1748eafb.vercel.app',
   ],
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-  credentials: true,
-});
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
