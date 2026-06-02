@@ -7,7 +7,13 @@ async function bootstrap() {
   
   // ✅ PENTING: Aktifkan ini dengan benar agar port 3000 diizinkan masuk
   app.enableCors({
-    origin: ['http://localhost:3000', 'https://nightmarket-backend-production.up.railway.app'],
+  origin: [
+    'http://localhost:3000',
+    'https://night-market-aa3e26ngc-farizs-projects-1748eafb.vercel.app',
+  ],
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+  credentials: true,
+});
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
