@@ -114,7 +114,10 @@ export class TransactionService {
   async getAllTransactions() {
     try {
       const transactions = await this.prisma.transaction.findMany({
-        include: { customer: true, transactionItems: true },
+        include: { customer: true, transactionItems: {
+            include: {
+              product: true
+         }} },
         orderBy: { createdAt: 'desc' }
       });
       return { success: true, message: 'Semua transaksi', data: transactions };

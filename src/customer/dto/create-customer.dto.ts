@@ -5,6 +5,7 @@ import {
   IsOptional,
   IsString,
   IsStrongPassword,
+  Min,
 } from 'class-validator';
 
 export class CreateCustomerDto {
@@ -18,6 +19,7 @@ export class CreateCustomerDto {
 
   @IsNotEmpty()
   @IsString()
+  @Min(8)
   password!: string;
 
   @IsNotEmpty()
