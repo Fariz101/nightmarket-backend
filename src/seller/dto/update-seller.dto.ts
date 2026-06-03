@@ -1,6 +1,6 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateSellerDto } from './create-seller.dto';
-import { IsEmail, IsOptional, IsString, Min } from 'class-validator';
+import { IsEmail, IsOptional, IsString, Min, MinLength } from 'class-validator';
 
 export class UpdateSellerDto extends PartialType(CreateSellerDto) {
   @IsOptional()
@@ -13,7 +13,7 @@ export class UpdateSellerDto extends PartialType(CreateSellerDto) {
 
   @IsOptional()
   @IsString()
-  @Min(8)
+  @MinLength(8)
   password?: string;
 
   @IsOptional()

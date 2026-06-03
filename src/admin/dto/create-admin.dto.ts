@@ -5,7 +5,8 @@ import {
   IsOptional,
   IsString,
   IsStrongPassword,
-  Min
+  Min,
+  MinLength
 } from 'class-validator';
 
 export class CreateAdminDto {
@@ -19,7 +20,7 @@ export class CreateAdminDto {
 
   @IsNotEmpty()
   @IsString()
-  @Min(8)
+  @MinLength(8)
   password!: string;
 
   @IsNotEmpty()
